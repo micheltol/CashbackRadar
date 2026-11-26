@@ -186,7 +186,8 @@ function sourceHint(provider, status) {
   }
   if (!provider.enabled || !provider.hasData) return '';
   const last = provider.updatedAt ? ` Laatste deel: ${dateFormat.format(new Date(provider.updatedAt))}.` : '';
-  return `Wordt geleidelijk ververst: elke ${status.stepMinutes} minuten één deel van de lijst.${last}`;
+  const pace = status.stepMinutes === 1 ? 'elke minuut' : `elke ${status.stepMinutes} minuten`;
+  return `Wordt geleidelijk ververst: ${pace} één deel van de lijst.${last}`;
 }
 
 function renderSources(status, tabUrl) {

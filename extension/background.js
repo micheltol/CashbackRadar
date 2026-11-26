@@ -14,7 +14,7 @@ const STEP_ALARM = 'refresh-step';
 const OLD_DAILY_ALARM = 'refresh-merchants'; // versie 1.1 en ouder
 const RETRY_ALARM_PREFIX = 'retry:';
 // Eén pagina per aanbieder per stap: met 27 en 29 pagina's duurt een ronde ongeveer
-// zeven uur dat de browser open staat.
+// een half uur dat de browser open staat.
 const STEP_MINUTES = 1;
 const RETRY_MINUTES = 2;
 const MIN_EXPECTED_ENTRIES = 50;

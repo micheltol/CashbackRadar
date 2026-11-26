@@ -34,9 +34,9 @@ toe). Bij opnieuw laden blijven de opgehaalde lijsten staan.
 
 ### Geleidelijk verversen
 
-Elk kwartier haalt de extensie één pagina per aanbieder op en werkt daarmee de lijst bij. Een
-ronde door alle pagina's (27 bij ShopBuddies, 29 bij CashbackXL) duurt zo ongeveer zeven uur
-dat de browser open staat. Een site krijgt dus nooit een reeks verzoeken achter elkaar.
+Elke minuut haalt de extensie één pagina per aanbieder op en werkt daarmee de lijst bij. Een
+ronde door alle pagina's (27 bij ShopBuddies, 29 bij CashbackXL) duurt zo ongeveer een half
+uur dat de browser open staat. Een site krijgt dus nooit een reeks verzoeken achter elkaar.
 
 - Een gewijzigd bedrag of een nieuwe winkel zie je zodra de pagina waar hij op staat aan de beurt is geweest: binnen één ronde.
 - Een winkel die bij de aanbieder verdwenen is, gaat uit de lijst nadat hij twee rondes achter elkaar niet meer is gezien. Eén ronde is te weinig: als de lijst tijdens een ronde verschuift, kan een winkel een keer tussen twee pagina's door glippen.
@@ -72,7 +72,7 @@ await chrome.runtime.sendMessage({ type: 'step' })
 | `extension/lib/compare.js` | Resultaten van de aanbieders samenvoegen en de beste kiezen. |
 | `extension/lib/format.js` | Cashback en badge weergeven. |
 | `extension/lib/incremental.js` | Boekhouding van het geleidelijk verversen: rondes, pagina's verwerken, pauzes. |
-| `extension/background.js` | Eerste volledige lijst, daarna elk kwartier een stap; icoon en badge per tab. |
+| `extension/background.js` | Eerste volledige lijst, daarna elke minuut een stap; icoon en badge per tab. |
 | `extension/popup/` | De popup. |
 | `extension/data/cashbackxl-domains.json` | Domein per CashbackXL-winkel, meegeleverd (zie hieronder). |
 | `data/merchants-nl.json` | Volledige ruwe ShopBuddies-lijst voor eigen analyse. |
@@ -101,7 +101,7 @@ Een los adres controleren kan via `popup/popup.html?url=https://surfshark.com/` 
 
 **ShopBuddies** levert alle winkels als JSON (27 pagina's van 100 winkels), met de website,
 aliasdomeinen en cashback per winkel. Elke pagina geeft een bladwijzer voor de volgende mee;
-die blijft geldig, zodat de extensie een kwartier later verder kan waar ze was.
+die blijft geldig, zodat de extensie een minuut later verder kan waar ze was.
 
 **CashbackXL** heeft geen JSON-lijst. De winkels staan op 29 lijstpagina's met naam, hoogste
 cashback en aantal aanbiedingen; het domein van een winkel staat alleen op zijn eigen
@@ -109,7 +109,7 @@ detailpagina. Alle detailpagina's ophalen zou ruim 1.400 verzoeken zijn, en de s
 verzoeken als het te snel gaat (status 429). Daarom:
 
 - de domeinen zitten in `extension/data/cashbackxl-domains.json`, gemaakt met `tools/fetch-cashbackxl.mjs`;
-- de extensie haalt alleen de 29 lijstpagina's op voor de actuele bedragen: de eerste keer achter elkaar met anderhalve seconde ertussen, daarna één pagina per kwartier;
+- de extensie haalt alleen de 29 lijstpagina's op voor de actuele bedragen: de eerste keer achter elkaar met anderhalve seconde ertussen, daarna één pagina per minuut;
 - van winkels die nog niet in het bestand staan haalt de extensie zelf de detailpagina op en onthoudt het domein: hooguit drie per stap (twintig bij een volledige verversing).
 
 ## Hoe het matchen werkt
