@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cashback-check</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Cashback-check</h1>
+      <p id="site" class="site"></p>
+    </header>
+
+    <main id="content" aria-live="polite">
+      <p class="muted">Bezig met laden…</p>
+    </main>
+
+    <footer>
+      <ul id="sources" class="sources"></ul>
+      <button
+        id="refresh"
+        type="button"
+        class="link"
+        title="Haalt de lijsten in één keer volledig op. Normaal is dat niet nodig: ze worden de hele dag door in delen ververst."
+      >
+        Lijsten vernieuwen
+      </button>
+    </footer>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

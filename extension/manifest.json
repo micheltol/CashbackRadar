@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Cashback-check voor ShopBuddies en CashbackXL (onofficieel)",
+  "short_name": "Cashback-check",
+  "version": "1.2.0",
+  "description": "Laat zien of de site die je bezoekt cashback heeft via ShopBuddies of CashbackXL, en waar die het hoogst is. Onofficieel; de winkellijsten worden lokaal vergeleken.",
+  "permissions": ["storage", "alarms", "tabs"],
+  "host_permissions": ["https://shopbuddies.nl/*", "https://www.cashbackxl.nl/*"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Cashback-check",
+    "default_icon": {
+      "16": "icons/inactive-16.png",
+      "32": "icons/inactive-32.png",
+      "48": "icons/inactive-48.png"
+    }
+  },
+  "icons": {
+    "16": "icons/active-16.png",
+    "32": "icons/active-32.png",
+    "48": "icons/active-48.png",
+    "128": "icons/active-128.png"
+  }
+}

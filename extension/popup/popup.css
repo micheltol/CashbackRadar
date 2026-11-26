@@ -1,0 +1,275 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #111827;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --card: #f9fafb;
+  --accent: #15803d;
+  --accent-fg: #ffffff;
+  --accent-soft: #dcfce7;
+  --warn-bg: #fef3c7;
+  --warn-fg: #92400e;
+  --chip-bg: #e5e7eb;
+  --chip-fg: #374151;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1f2227;
+    --fg: #f3f4f6;
+    --muted: #9ca3af;
+    --line: #374151;
+    --card: #2a2e35;
+    --accent: #22a355;
+    --accent-fg: #ffffff;
+    --accent-soft: #163a25;
+    --warn-bg: #4a3a12;
+    --warn-fg: #fcd34d;
+    --chip-bg: #3b414b;
+    --chip-fg: #e5e7eb;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 350px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.4 "Segoe UI", system-ui, sans-serif;
+}
+
+header,
+main,
+footer {
+  padding: 12px 14px;
+}
+
+header {
+  border-bottom: 1px solid var(--line);
+}
+
+h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+h2 {
+  margin: 14px 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.site {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+main {
+  max-height: 440px;
+  overflow-y: auto;
+}
+
+.muted {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.empty {
+  margin: 0 0 8px;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+/* De beste deal: groot en met een gekleurde rand. */
+.hero {
+  padding: 12px;
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  background: var(--accent-soft);
+}
+
+.verdict {
+  margin: 0 0 6px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hero .amount {
+  display: block;
+  margin: 2px 0;
+  color: var(--accent);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.offer-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.name {
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.chip {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--chip-bg);
+  color: var(--chip-fg);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.details {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.warning {
+  margin: 6px 0 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+  font-size: 12px;
+}
+
+/* Overige aanbiedingen: compacte regels. */
+.row {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.row + .row {
+  margin-top: 6px;
+}
+
+.row .offer-head {
+  justify-content: space-between;
+}
+
+.row .amount {
+  flex: none;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.row-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.row-foot .details {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.primary {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+
+.primary:hover {
+  filter: brightness(1.08);
+}
+
+.note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+footer {
+  border-top: 1px solid var(--line);
+}
+
+.sources {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.sources li + li {
+  margin-top: 4px;
+}
+
+.sources label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.sources input {
+  flex: none;
+  margin: 0;
+  translate: 0 2px;
+}
+
+.sources .state {
+  color: var(--muted);
+}
+
+.sources .state.error {
+  color: var(--warn-fg);
+}
+
+.link {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 12px;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.link:disabled {
+  color: var(--muted);
+  cursor: default;
+  text-decoration: none;
+}
