@@ -18,7 +18,7 @@ const RETRY_ALARM_PREFIX = 'retry:';
 const STEP_MINUTES = 1;
 const RETRY_MINUTES = 2;
 const MIN_EXPECTED_ENTRIES = 50;
-const DEFAULT_TITLE = 'Cashback-check';
+const DEFAULT_TITLE = 'CashbackRadar';
 
 const ICONS = {
   active: { 16: 'icons/active-16.png', 32: 'icons/active-32.png', 48: 'icons/active-48.png' },

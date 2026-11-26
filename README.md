@@ -1,6 +1,6 @@
-# Cashback-check voor ShopBuddies en CashbackXL (onofficieel)
+# CashbackRadar
 
-Edge-extensie die bij elke site die je bezoekt laat zien of er cashback is via
+Onofficiële Edge-extensie die bij elke site die je bezoekt laat zien of er cashback is via
 [ShopBuddies](https://shopbuddies.nl/) of [CashbackXL](https://www.cashbackxl.nl/), en bij
 welke van de twee die het hoogst is. De winkellijsten worden één keer volledig opgehaald en
 daarna de hele dag door in kleine delen ververst. Ze worden lokaal met het domein van je tab

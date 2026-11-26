@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Cashback-check voor ShopBuddies en CashbackXL (onofficieel)",
-  "short_name": "Cashback-check",
+  "name": "CashbackRadar",
+  "short_name": "CashbackRadar",
   "version": "1.2.0",
   "description": "Laat zien of de site die je bezoekt cashback heeft via ShopBuddies of CashbackXL, en waar die het hoogst is. Onofficieel; de winkellijsten worden lokaal vergeleken.",
   "permissions": ["storage", "alarms", "tabs"],
@@ -12,7 +12,7 @@
   },
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "Cashback-check",
+    "default_title": "CashbackRadar",
     "default_icon": {
       "16": "icons/inactive-16.png",
       "32": "icons/inactive-32.png",
