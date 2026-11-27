@@ -37,26 +37,27 @@ jobs:
       - name: Zip maken
         env:
           NAME: ${{ steps.build.outputs.name }}
-          ZIP: ${{ steps.build.outputs.zip }}
+          # Niet ZIP noemen: het programma zip leest een variabele met die naam als eigen opties.
+          ZIP_FILE: ${{ steps.build.outputs.zip }}
         # De bestanden staan in de hoofdmap van het zip-bestand, met manifest.json bovenaan.
         run: |
           cd "dist/$NAME"
-          zip -r -X "../$ZIP" .
-          unzip -l "../$ZIP"
+          zip -r -X "../$ZIP_FILE" .
+          unzip -l "../$ZIP_FILE"
 
       - name: Release publiceren
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.build.outputs.tag }}
           TITLE: ${{ steps.build.outputs.title }}
-          ZIP: ${{ steps.build.outputs.zip }}
+          ZIP_FILE: ${{ steps.build.outputs.zip }}
         # Bestaat de release al (de workflow is opnieuw gedraaid), dan wordt hij bijgewerkt.
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "dist/$ZIP" --clobber
+            gh release upload "$TAG" "dist/$ZIP_FILE" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes-file dist/release-notes.md
           else
-            gh release create "$TAG" "dist/$ZIP" \
+            gh release create "$TAG" "dist/$ZIP_FILE" \
               --target "$GITHUB_SHA" \
               --title "$TITLE" \
               --notes-file dist/release-notes.md \
