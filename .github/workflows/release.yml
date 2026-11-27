@@ -1,0 +1,64 @@
+# Bij elke commit op main: tests draaien, de extensie inpakken en als release aanbieden.
+# Het versienummer en de release notes komen uit tools/build-release.mjs.
+
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write # nodig om de tag en de release aan te maken
+
+# Releases één voor één, in de volgorde van de commits.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # hele geschiedenis en alle tags: nodig voor het versienummer en de release notes
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Tests
+        run: node --test
+
+      - name: Pakket en release notes maken
+        id: build
+        run: node tools/build-release.mjs
+
+      - name: Zip maken
+        env:
+          NAME: ${{ steps.build.outputs.name }}
+          ZIP: ${{ steps.build.outputs.zip }}
+        # De bestanden staan in de hoofdmap van het zip-bestand, met manifest.json bovenaan.
+        run: |
+          cd "dist/$NAME"
+          zip -r -X "../$ZIP" .
+          unzip -l "../$ZIP"
+
+      - name: Release publiceren
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.build.outputs.tag }}
+          TITLE: ${{ steps.build.outputs.title }}
+          ZIP: ${{ steps.build.outputs.zip }}
+        # Bestaat de release al (de workflow is opnieuw gedraaid), dan wordt hij bijgewerkt.
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "dist/$ZIP" --clobber
+            gh release edit "$TAG" --title "$TITLE" --notes-file dist/release-notes.md
+          else
+            gh release create "$TAG" "dist/$ZIP" \
+              --target "$GITHUB_SHA" \
+              --title "$TITLE" \
+              --notes-file dist/release-notes.md \
+              --latest
+          fi

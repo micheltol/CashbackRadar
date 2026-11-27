@@ -16,6 +16,10 @@ de extensie gebruikt wat hun eigen sites tonen, en dat kan zonder aankondiging v
 3. Klik **Uitgepakte extensie laden** en kies de map `extension` uit dit project.
 4. Klik op het puzzelstukje in de werkbalk en zet de extensie vast (oogje).
 
+Zonder de broncode kan het ook: download het zip-bestand van de nieuwste
+[release](../../releases/latest), pak het uit in een map die blijft staan en kies die map bij
+stap 3.
+
 Had je de extensie al geladen, klik dan op de extensiekaart op **Opnieuw laden**. De map moet
 blijven staan; Edge laadt de extensie daar elke keer vandaan.
 
@@ -80,6 +84,8 @@ await chrome.runtime.sendMessage({ type: 'step' })
 | `tools/fetch-merchants.mjs` | Ververst `data/merchants-nl.json` (tien seconden). |
 | `tools/fetch-cashbackxl.mjs` | Ververst `data/cashbackxl-nl.json` en het meegeleverde domeinbestand (ruim een half uur). |
 | `tools/make-icons.mjs` | Tekent de iconen opnieuw. |
+| `tools/build-release.mjs` | Maakt het pakket en de release notes in `dist/` (zie Releases). |
+| `.github/workflows/release.yml` | GitHub-workflow die bij elke commit op `main` een release maakt. |
 | `test/` | Tests; gebruiken de echte lijsten als die er zijn. |
 
 ```powershell
@@ -96,6 +102,21 @@ node tools/fetch-cashbackxl.mjs
 
 Een los adres controleren kan via `popup/popup.html?url=https://surfshark.com/` op het
 `chrome-extension://`-adres van de extensie.
+
+## Releases
+
+Bij elke commit op `main` draait GitHub de tests en maakt daarna een release met het
+zip-bestand van de extensie. Mislukken de tests, dan komt er geen release.
+
+- **Versienummer:** de versie uit `extension/manifest.json` met het aantal commits erachter, bijvoorbeeld `1.2.0.57`. Elke commit krijgt zo een eigen, oplopende versie; die staat ook in het manifest van het pakket, dus `edge://extensions` toont welke build geladen is. De eerste drie getallen verhoog je zelf in het manifest.
+- **Release notes:** de commits sinds de vorige release, elk met titel en toelichting. Een duidelijke commitboodschap is dus meteen de release note. Regels als `Co-Authored-By:` blijven eruit.
+- **Overslaan:** zet `[skip ci]` in de commitboodschap om voor die commit geen release te maken.
+
+Het pakket en de release notes lokaal bekijken, zonder iets te publiceren:
+
+```powershell
+node tools/build-release.mjs
+```
 
 ## Waar de gegevens vandaan komen
 
