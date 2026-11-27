@@ -1,13 +1,20 @@
 // Tekent de iconen (procentteken op een afgerond vlak) en schrijft ze als PNG.
 // Gebruik: node tools/make-icons.mjs
+//
+// Het icoon van 128 px krijgt 16 px transparante rand (beeld 96 px), zoals de Chrome Web Store
+// aanraadt. Daarnaast komt het store-logo van 300 px voor Edge Add-ons in store/.
 
 import { deflateSync, crc32 } from 'node:zlib';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const outDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'extension', 'icons');
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const outDir = join(root, 'extension', 'icons');
+const storeDir = join(root, 'store');
 const SIZES = [16, 32, 48, 128];
+// Transparante rand per formaat, in pixels.
+const PADDING = { 128: 16 };
 const VARIANTS = {
   active: [21, 128, 61], // groen: cashback gevonden
   inactive: [148, 155, 165], // grijs: niets gevonden
@@ -36,7 +43,8 @@ function shade(x, y) {
   return slash || ring(0.3, 0.32) || ring(0.7, 0.68) ? 'fg' : 'bg';
 }
 
-function render(size, [r, g, b]) {
+function render(size, [r, g, b], pad = PADDING[size] || 0) {
+  const art = size - 2 * pad;
   const pixels = Buffer.alloc(size * size * 4);
   for (let py = 0; py < size; py++) {
     for (let px = 0; px < size; px++) {
@@ -46,7 +54,7 @@ function render(size, [r, g, b]) {
       let blue = 0;
       for (let sy = 0; sy < SAMPLES; sy++) {
         for (let sx = 0; sx < SAMPLES; sx++) {
-          const kind = shade((px + (sx + 0.5) / SAMPLES) / size, (py + (sy + 0.5) / SAMPLES) / size);
+          const kind = shade((px - pad + (sx + 0.5) / SAMPLES) / art, (py - pad + (sy + 0.5) / SAMPLES) / art);
           if (!kind) continue;
           alpha++;
           red += kind === 'fg' ? 255 : r;
@@ -101,3 +109,9 @@ for (const [name, color] of Object.entries(VARIANTS)) {
     console.log('geschreven', file);
   }
 }
+
+// Store-logo voor Edge Add-ons: 300 x 300, zonder rand.
+mkdirSync(storeDir, { recursive: true });
+const logo = join(storeDir, 'logo-300.png');
+writeFileSync(logo, encodePng(300, render(300, VARIANTS.active, 0)));
+console.log('geschreven', logo);
