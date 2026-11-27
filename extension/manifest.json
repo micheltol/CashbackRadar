@@ -1,7 +1,6 @@
 {
   "manifest_version": 3,
   "name": "CashbackRadar",
-  "short_name": "CashbackRadar",
   "version": "1.2.0",
   "description": "Ziet of de site die je bezoekt cashback heeft bij ShopBuddies of CashbackXL, en waar die het hoogst is. Onofficieel.",
   "homepage_url": "https://github.com/micheltol/CashbackRadar",
