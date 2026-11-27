@@ -2,6 +2,11 @@
 // (.github/workflows/release.yml) bij elke commit op main gedraaid, maar werkt ook lokaal:
 //
 //   node tools/build-release.mjs
+//   CHANNEL=beta node tools/build-release.mjs
+//
+// Twee kanalen (CHANNEL, standaard stable):
+//   stable  tag v1.2.0.57, gewone release; de workflow zet deze ook in de Edge-store
+//   beta    tag v1.2.0.58-beta, pre-release op GitHub
 //
 // Resultaat in dist/:
 //   CashbackRadar-<versie>/   de extensie, met het versienummer van deze build in het manifest
@@ -19,6 +24,9 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
 const MAX_COMMITS = 50; // de eerste release zou anders de hele geschiedenis opsommen
+const CHANNEL = process.env.CHANNEL || 'stable';
+if (!['stable', 'beta'].includes(CHANNEL)) throw new Error(`Onbekend kanaal: ${CHANNEL} (stable of beta)`);
+const beta = CHANNEL === 'beta';
 
 const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
 const tryGit = (...args) => {
@@ -41,7 +49,8 @@ const build = Number(git('rev-list', '--count', 'HEAD'));
 if (build > 65535) throw new Error('Te veel commits voor het vierde versiegetal (maximaal 65535)');
 
 const version = [...base, build].join('.');
-const tag = `v${version}`;
+// Het manifest moet vier getallen hebben; het kanaal staat alleen in de tag en de titel.
+const tag = beta ? `v${version}-beta` : `v${version}`;
 const name = `${manifest.name}-${version}`;
 const zip = `${name}.zip`;
 
@@ -54,8 +63,17 @@ writeFileSync(join(dist, name, 'manifest.json'), `${JSON.stringify({ ...manifest
 
 // --- release notes ----------------------------------------------------------------
 
-// De vorige release is de laatste v-tag die vóór deze commit ligt.
-const previousTag = tryGit('describe', '--tags', '--abbrev=0', '--match', 'v[0-9]*', 'HEAD');
+// De vorige release is de laatste v-tag die vóór deze commit ligt. Een stabiele release
+// vergelijkt met de vorige stabiele, zodat de notes alles sinds de vorige store-versie tonen.
+const previousTag = tryGit(
+  'describe',
+  '--tags',
+  '--abbrev=0',
+  '--match',
+  'v[0-9]*',
+  ...(beta ? [] : ['--exclude', '*-beta']),
+  'HEAD',
+);
 const range = previousTag ? `${previousTag}..HEAD` : 'HEAD';
 const log = git('log', '--no-merges', `--max-count=${MAX_COMMITS + 1}`, '--format=%H%x1f%s%x1f%b%x1e', range);
 const commits = log
@@ -92,6 +110,7 @@ function commitNote({ hash, subject, body }) {
 }
 
 const notes = [
+  ...(beta ? ['> **Beta.** Testversie van de `beta`-branch; deze komt niet in de stores.', ''] : []),
   '## Wijzigingen',
   '',
   commits.length ? commits.map(commitNote).join('\n\n') : '_Geen wijzigingen sinds de vorige release._',
@@ -116,7 +135,8 @@ writeFileSync(join(dist, 'release-notes.md'), notes.join('\n'));
 
 // --- uitkomst ---------------------------------------------------------------------
 
-const outputs = { version, tag, name, zip, title: `${manifest.name} ${version}`, previous_tag: previousTag };
+const title = `${manifest.name} ${version}${beta ? ' (beta)' : ''}`;
+const outputs = { version, tag, name, zip, title, channel: CHANNEL, prerelease: String(beta), previous_tag: previousTag };
 if (process.env.GITHUB_OUTPUT) {
   appendFileSync(process.env.GITHUB_OUTPUT, Object.entries(outputs).map(([key, value]) => `${key}=${value}\n`).join(''));
 }

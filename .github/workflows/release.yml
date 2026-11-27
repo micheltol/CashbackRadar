@@ -1,23 +1,39 @@
-# Bij elke commit op main: tests draaien, de extensie inpakken en als release aanbieden.
-# Het versienummer en de release notes komen uit tools/build-release.mjs.
+# Bij elke commit op main of beta: tests draaien, de extensie inpakken en als release aanbieden.
+#
+#   main  gewone release (v1.2.0.57) en daarna automatisch naar Microsoft Edge Add-ons
+#   beta  pre-release op GitHub (v1.2.0.58-beta), komt niet in de stores
+#
+# Het versienummer en de release notes komen uit tools/build-release.mjs: de versie uit
+# extension/manifest.json met het aantal commits erachter. Elke commit is dus een hogere versie,
+# wat Edge eist bij elke upload.
+#
+# Voor Edge zijn drie repository-secrets nodig (Settings > Secrets and variables > Actions):
+# EDGE_PRODUCT_ID, EDGE_CLIENT_ID en EDGE_API_KEY. Zonder die secrets wordt de Edge-stap
+# overgeslagen en komt er alleen een GitHub-release.
 
 name: Release
 
 on:
   push:
-    branches: [main]
+    branches: [main, beta]
 
 permissions:
   contents: write # nodig om de tag en de release aan te maken
 
 # Releases één voor één, in de volgorde van de commits.
 concurrency:
-  group: release
+  group: release-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      CHANNEL: ${{ github.ref_name == 'main' && 'stable' || 'beta' }}
+    outputs:
+      zip: ${{ steps.build.outputs.zip }}
+      tag: ${{ steps.build.outputs.tag }}
+      version: ${{ steps.build.outputs.version }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -51,11 +67,19 @@ jobs:
           TAG: ${{ steps.build.outputs.tag }}
           TITLE: ${{ steps.build.outputs.title }}
           ZIP_FILE: ${{ steps.build.outputs.zip }}
+          PRERELEASE: ${{ steps.build.outputs.prerelease }}
         # Bestaat de release al (de workflow is opnieuw gedraaid), dan wordt hij bijgewerkt.
+        # Een beta is een pre-release en wordt nooit de "latest" release.
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "dist/$ZIP_FILE" --clobber
             gh release edit "$TAG" --title "$TITLE" --notes-file dist/release-notes.md
+          elif [ "$PRERELEASE" = "true" ]; then
+            gh release create "$TAG" "dist/$ZIP_FILE" \
+              --target "$GITHUB_SHA" \
+              --title "$TITLE" \
+              --notes-file dist/release-notes.md \
+              --prerelease
           else
             gh release create "$TAG" "dist/$ZIP_FILE" \
               --target "$GITHUB_SHA" \
@@ -63,3 +87,49 @@ jobs:
               --notes-file dist/release-notes.md \
               --latest
           fi
+
+      - name: Pakket bewaren voor de store
+        if: env.CHANNEL == 'stable'
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: dist/${{ steps.build.outputs.zip }}
+          retention-days: 7
+
+  edge:
+    name: Edge Add-ons
+    needs: release
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    environment: edge-addons # optioneel: hier kun je in GitHub een goedkeuring vóór publicatie instellen
+    env:
+      EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+      EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+      EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+      EDGE_NOTES: Automatische update naar ${{ needs.release.outputs.version }} (${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ needs.release.outputs.tag }})
+    steps:
+      - name: Secrets controleren
+        id: check
+        run: |
+          if [ -z "$EDGE_PRODUCT_ID" ] || [ -z "$EDGE_CLIENT_ID" ] || [ -z "$EDGE_API_KEY" ]; then
+            echo "::warning::Edge-secrets ontbreken; de extensie is niet naar Edge Add-ons gestuurd."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.check.outputs.skip != 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.check.outputs.skip != 'true'
+        with:
+          node-version: 24
+
+      - uses: actions/download-artifact@v5
+        if: steps.check.outputs.skip != 'true'
+        with:
+          name: package
+          path: dist
+
+      - name: Naar Edge Add-ons sturen
+        if: steps.check.outputs.skip != 'true'
+        run: node tools/publish-edge.mjs "dist/${{ needs.release.outputs.zip }}"

@@ -1,6 +1,6 @@
 # CashbackRadar
 
-Onofficiële Edge-extensie die bij elke site die je bezoekt laat zien of er cashback is via
+Onofficiële browserextensie voor Edge en Chrome die bij elke site die je bezoekt laat zien of er cashback is via
 [ShopBuddies](https://shopbuddies.nl/) of [CashbackXL](https://www.cashbackxl.nl/), en bij
 welke van de twee die het hoogst is. De winkellijsten worden één keer volledig opgehaald en
 daarna de hele dag door in kleine delen ververst. Ze worden lokaal met het domein van je tab
@@ -10,6 +10,10 @@ Dit is geen product van ShopBuddies of CashbackXL. Geen van beide heeft een offi
 de extensie gebruikt wat hun eigen sites tonen, en dat kan zonder aankondiging veranderen.
 
 ## Installeren in Edge
+
+Zodra de extensie in de Microsoft Edge Add-ons en de Chrome Web Store staat, installeer je hem
+daar met één klik. Tot dan, of om een eigen build te testen:
+
 
 1. Open `edge://extensions`.
 2. Zet links **Ontwikkelaarsmodus** aan.
@@ -83,10 +87,12 @@ await chrome.runtime.sendMessage({ type: 'step' })
 | `data/cashbackxl-nl.json` | Volledige CashbackXL-lijst voor eigen analyse, met domein en tarieven. |
 | `tools/fetch-merchants.mjs` | Ververst `data/merchants-nl.json` (tien seconden). |
 | `tools/fetch-cashbackxl.mjs` | Ververst `data/cashbackxl-nl.json` en het meegeleverde domeinbestand (ruim een half uur). |
-| `tools/make-icons.mjs` | Tekent de iconen opnieuw. |
+| `tools/make-icons.mjs` | Tekent de iconen en het store-logo opnieuw. |
 | `tools/build-release.mjs` | Maakt het pakket en de release notes in `dist/` (zie Releases). |
 | `.github/workflows/release.yml` | GitHub-workflow die bij elke commit op `main` een release maakt. |
 | `test/` | Tests; gebruiken de echte lijsten als die er zijn. |
+| `store/` | Teksten en afbeeldingen voor de Chrome Web Store en Edge Add-ons (zie Publiceren). |
+| `PRIVACY.md` | Privacybeleid; de stores linken hiernaar. |
 
 ```powershell
 node --test
@@ -105,18 +111,62 @@ Een los adres controleren kan via `popup/popup.html?url=https://surfshark.com/` 
 
 ## Releases
 
-Bij elke commit op `main` draait GitHub de tests en maakt daarna een release met het
-zip-bestand van de extensie. Mislukken de tests, dan komt er geen release.
+De GitHub-workflow draait bij elke commit op `main` of `beta` eerst de tests en maakt daarna een
+release met het zip-bestand van de extensie. Mislukken de tests, dan komt er geen release.
 
-- **Versienummer:** de versie uit `extension/manifest.json` met het aantal commits erachter, bijvoorbeeld `1.2.0.57`. Elke commit krijgt zo een eigen, oplopende versie; die staat ook in het manifest van het pakket, dus `edge://extensions` toont welke build geladen is. De eerste drie getallen verhoog je zelf in het manifest.
-- **Release notes:** de commits sinds de vorige release, elk met titel en toelichting. Een duidelijke commitboodschap is dus meteen de release note. Regels als `Co-Authored-By:` blijven eruit.
+| Branch | Wat er gebeurt |
+| --- | --- |
+| `main` | Gewone release (`v1.2.0.57`), daarna automatisch naar Microsoft Edge Add-ons. |
+| `beta` | Pre-release op GitHub (`v1.2.0.58-beta`). Komt niet in de stores. |
+
+Een beta maken: werk op de branch `beta` en push. Is de beta goed, merge hem dan naar `main`.
+
+- **Versienummer:** dat bepaalt de pipeline. Het is de versie uit `extension/manifest.json` met het aantal commits erachter, bijvoorbeeld `1.2.0.57`. Elke commit krijgt zo een eigen, oplopende versie, wat de stores eisen bij elke upload. Die staat ook in het manifest van het pakket, dus `edge://extensions` toont welke build geladen is. De eerste drie getallen verhoog je alleen als je dat zelf wilt.
+- **Release notes:** de commits sinds de vorige release (bij `main`: sinds de vorige stabiele release), elk met titel en toelichting. Een duidelijke commitboodschap is dus meteen de release note. Regels als `Co-Authored-By:` blijven eruit.
 - **Overslaan:** zet `[skip ci]` in de commitboodschap om voor die commit geen release te maken.
 
 Het pakket en de release notes lokaal bekijken, zonder iets te publiceren:
 
 ```powershell
 node tools/build-release.mjs
+$env:CHANNEL = 'beta'; node tools/build-release.mjs
 ```
+
+### Automatisch naar Edge Add-ons
+
+Na een release op `main` stuurt de job **Edge Add-ons** het pakket via de
+[Edge Add-ons API](https://learn.microsoft.com/microsoft-edge/extensions/update/api/using-addons-api)
+naar de store (`tools/publish-edge.mjs`). Daarna volgt de review van Microsoft.
+
+Eenmalig instellen:
+
+1. Dien de extensie de eerste keer met de hand in via Partner Center (zie hieronder).
+2. Ga in Partner Center naar **Microsoft Edge > Publish API** en maak API-gegevens aan.
+3. Zet in GitHub onder **Settings > Secrets and variables > Actions** drie repository-secrets:
+   - `EDGE_PRODUCT_ID`: de Product ID van de extensie (op de overzichtspagina van de extensie in Partner Center)
+   - `EDGE_CLIENT_ID`: de Client ID van de Publish API
+   - `EDGE_API_KEY`: de API key van de Publish API (verloopt na een tijd; vernieuw hem dan)
+
+Zonder deze secrets slaat de job Edge over met een waarschuwing. Edge accepteert maar één
+indiening tegelijk in review: komt er een nieuwe release terwijl de vorige nog beoordeeld wordt,
+dan wordt die versie overgeslagen (waarschuwing, geen fout) en gaat de volgende release weer mee.
+
+## Publiceren in de stores
+
+De extensie is klaar voor de Chrome Web Store en Microsoft Edge Add-ons. Alles wat je moet invullen
+staat in [`store/listing.md`](store/listing.md): beschrijving, verantwoording per permissie,
+privacyverklaringen, testinstructies voor de review en welke afbeelding waar hoort. Het
+privacybeleid staat in [`PRIVACY.md`](PRIVACY.md).
+
+1. Maak het pakket: neem het zip-bestand uit de nieuwste GitHub-release, of draai
+   `node tools/build-release.mjs` en zip de inhoud van `dist/CashbackRadar-<versie>/`
+   (met `manifest.json` bovenaan).
+2. **Chrome:** upload in het [Developer Dashboard](https://chrome.google.com/webstore/devconsole)
+   en vul Store listing, Privacy en Distributie in.
+3. **Edge:** upload in [Partner Center](https://partner.microsoft.com/dashboard/microsoftedge/overview)
+   en vul Availability, Properties en Store listing in.
+4. Bij een update: verhoog zo nodig de versie in `manifest.json` (het buildnummer loopt vanzelf op)
+   en upload het nieuwe zip-bestand. Beide stores eisen een hoger versienummer dan de vorige upload.
 
 ## Waar de gegevens vandaan komen
 
